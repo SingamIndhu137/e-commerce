@@ -43,10 +43,13 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-
   docker:
     name: Build and Push Docker Images
     needs: quality
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
@@ -87,10 +90,10 @@ jobs:
           docker push \
             ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ steps.meta.outputs.tag }}
 
-
   deploy:
     name: Deploy to EC2
     needs: docker
+
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
@@ -110,8 +113,8 @@ jobs:
 
             echo "Creating deployment environment..."
 
-            echo "FRONTEND_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${GITHUB_SHA::7}" > .env
-            echo "BACKEND_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${GITHUB_SHA::7}" >> .env
+            echo "FRONTEND_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ needs.docker.outputs.image_tag }}" > .env
+            echo "BACKEND_IMAGE=${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ needs.docker.outputs.image_tag }}" >> .env
             echo "FRONTEND_URL=http://${{ secrets.EC2_HOST }}:3000" >> .env
             echo "BACKEND_URL=http://${{ secrets.EC2_HOST }}:5000" >> .env
             echo "MONGO_DATABASE=ecommerce" >> .env
