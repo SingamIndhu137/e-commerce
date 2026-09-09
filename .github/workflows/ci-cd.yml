@@ -69,6 +69,7 @@ jobs:
       - name: Build frontend image
         run: |
           docker build \
+            --build-arg REACT_APP_BACKEND_URL=http://${{ secrets.EC2_HOST }}:5000 \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ steps.meta.outputs.tag }} \
             ./frontend
 
