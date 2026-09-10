@@ -37,11 +37,17 @@ jobs:
         working-directory: frontend
         run: npm test -- --watchAll=false --passWithNoTests
 
+      # Test whether GitHub Actions can reach SonarQube
+      - name: Test SonarQube connectivity
+        run: |
+          curl -v --connect-timeout 10 "${{ secrets.SONAR_HOST_URL }}/api/system/status"
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
 
   docker:
     name: Build and Push Docker Images
@@ -89,6 +95,7 @@ jobs:
         run: |
           docker push \
             ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ steps.meta.outputs.tag }}
+
 
   deploy:
     name: Deploy to EC2
