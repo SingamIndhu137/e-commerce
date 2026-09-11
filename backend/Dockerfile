@@ -1,6 +1,8 @@
 # Stage 1: Install production dependencies
 FROM node:22-alpine AS dependencies
 
+RUN apk upgrade --no-cache
+
 WORKDIR /app
 
 COPY package*.json ./
@@ -10,6 +12,8 @@ RUN npm ci --omit=dev
 
 # Stage 2: Run the application
 FROM node:22-alpine AS runtime
+
+RUN apk upgrade --no-cache
 
 ENV NODE_ENV=production
 
