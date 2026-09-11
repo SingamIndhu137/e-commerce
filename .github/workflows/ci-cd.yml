@@ -42,6 +42,7 @@ jobs:
         run: |
           echo "Testing SonarQube..."
           curl -4 -v --connect-timeout 30 "${{ secrets.SONAR_HOST_URL }}/api/system/status"
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
@@ -50,7 +51,7 @@ jobs:
 
 
   docker:
-    name: Build and Push Docker Images
+    name: Build, Scan and Push Docker Images
     needs: quality
 
     outputs:
@@ -85,6 +86,24 @@ jobs:
           docker build \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ steps.meta.outputs.tag }} \
             ./backend
+
+      # Scan frontend Docker image for HIGH and CRITICAL vulnerabilities
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend:${{ steps.meta.outputs.tag }}
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
+
+      # Scan backend Docker image for HIGH and CRITICAL vulnerabilities
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend:${{ steps.meta.outputs.tag }}
+          severity: CRITICAL,HIGH
+          exit-code: '1'
+          ignore-unfixed: true
 
       - name: Push frontend image
         run: |
