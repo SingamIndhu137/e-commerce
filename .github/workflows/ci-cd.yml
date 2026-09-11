@@ -40,8 +40,8 @@ jobs:
       # Test whether GitHub Actions can reach SonarQube
       - name: Test SonarQube connectivity
         run: |
-          curl -v --connect-timeout 10 "${{ secrets.SONAR_HOST_URL }}/api/system/status"
-
+          echo "Testing SonarQube..."
+          curl -4 -v --connect-timeout 30 "${{ secrets.SONAR_HOST_URL }}/api/system/status"
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
